@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice-Based Assistant Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f7f6;
+            text-align: center;
+            padding-top: 100px;
+            color: #333;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: inline-block;
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 { margin-bottom: 10px; font-size: 24px; color: #2c3e50; }
+        p { color: #7f8c8d; margin-bottom: 30px; }
+        .mic-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            font-size: 32px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+        }
+        .mic-btn:hover { background: #2980b9; transform: scale(1.05); }
+        .mic-btn:active { transform: scale(0.95); }
+        #status {
+            margin-top: 25px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            min-height: 27px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Voice Assistant Engine</h1>
+        <p>Click the button and speak a command clear into your mic.</p>
+        
+        <button id="start-btn" class="mic-btn">🎙️</button>
+        
+        <div id="status">Ready...</div>
+    </div>
+
+    <script>
+        const btn = document.getElementById('start-btn');
+        const statusText = document.getElementById('status');
+
+        // STAGE 3: The Ears (Web Speech API)
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        
+        if (!SpeechRecognition) {
+            statusText.innerText = "Speech API not supported. Please use Google Chrome.";
+            btn.style.display = "none";
+        } else {
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'en-US';
+
+            btn.addEventListener('click', () => {
+                recognition.start();
+                statusText.innerText = "🎚️ Listening... Speak now!";
+            });
+
+            recognition.onresult = (event) => {
+                const command = event.results[0][0].transcript.toLowerCase();
+                statusText.innerText = `You said: "${command}"`;
+                
+                // Pass text to Brain
+                setTimeout(() => { processCommand(command); }, 600);
+            };
+
+            recognition.onerror = () => {
+                statusText.innerText = "⚠️ Error capturing audio. Try again.";
+            };
+        }
+
+        // STAGE 5: The Mouth (Text to Speech Synthesis)
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            // Adjust rate to sound clean
+            utterance.rate = 1.0; 
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // STAGE 4: The Brain (Processing Logic)
+        function processCommand(command) {
+            if (command.includes('hello') || command.includes('hi')) {
+                speak("Hello Harsha! I am your web voice assistant. How can I help you?");
+            } 
+            else if (command.includes('time')) {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                speak(`The current time is ${timeString}`);
+            } 
+            else if (command.includes('who are you') || command.includes('name')) {
+                speak("I am a voice-based assistant prototype built with JavaScript.");
+            } 
+            else {
+                speak("I caught your voice, but that command is not programmed yet.");
+            }
+        }
+    </script>
+</body>
+</html>
