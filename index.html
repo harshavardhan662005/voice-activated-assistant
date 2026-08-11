@@ -26,15 +26,15 @@
         <div id="status">Ready...</div>
     </div>
 
-    <script>
+   <script>
         const btn = document.getElementById('start-btn');
         const statusText = document.getElementById('status');
 
         // Your active API Key
         const API_KEY = "AQ.Ab8RN6JZgcUSVbGojl-yqywThJ5USSqDI9CO8RmKH1CIKpFilg";
         
-        // Pointing to the stable, high-capacity Gemini 2.0 Flash model
-        const URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+        // CLEAN URL: We removed the key from here!
+        const URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
 
         // STAGE 1: Web Speech Recognition (Ears)
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -62,8 +62,6 @@
             recognition.onresult = (event) => {
                 const command = event.results[0][0].transcript;
                 statusText.innerText = `You said: "${command}"`;
-                
-                // Pass the text to the AI brain
                 processAICommand(command);
             };
 
@@ -91,7 +89,10 @@
             try {
                 const response = await fetch(URL, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "x-goog-api-key": API_KEY // Passed securely in the header!
+                    },
                     body: JSON.stringify({
                         contents: [{
                             parts: [{
@@ -104,7 +105,8 @@
                 const data = await response.json();
                 
                 if (data.error) {
-                    console.error("Cloud Error:", data.error.message);
+                    // This prints the exact reason for the failure in your browser console
+                    console.error("Cloud Error Details:", data.error);
                     speak("I am having a little trouble connecting to my cloud servers right now.");
                     return;
                 }
