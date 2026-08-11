@@ -5,47 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Voice Assistant</title>
     <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: #f4f7f6; 
-            text-align: center; 
-            padding-top: 100px; 
-            color: #333; 
-        }
-        .container { 
-            background: white; 
-            padding: 40px; 
-            border-radius: 12px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
-            display: inline-block; 
-            max-width: 400px; 
-            width: 90%; 
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; text-align: center; padding-top: 100px; color: #333; }
+        .container { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: inline-block; max-width: 400px; width: 90%; }
         h1 { margin-bottom: 10px; font-size: 24px; color: #2c3e50; }
         p { color: #7f8c8d; margin-bottom: 30px; }
-        .mic-btn { 
-            background: #ec4899; 
-            color: white; 
-            border: none; 
-            width: 80px; 
-            height: 80px; 
-            border-radius: 50%; 
-            font-size: 32px; 
-            cursor: pointer; 
-            transition: all 0.3s ease; 
-            box-shadow: 0 4px 10px rgba(236, 72, 153, 0.3); 
-        }
+        .mic-btn { background: #ec4899; color: white; border: none; width: 80px; height: 80px; border-radius: 50%; font-size: 32px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(236, 72, 153, 0.3); }
         .mic-btn:hover { background: #db2777; transform: scale(1.05); }
         .mic-btn:active { transform: scale(0.95); }
-        #status { 
-            margin-top: 25px; 
-            font-size: 16px; 
-            font-weight: 600; 
-            color: #2c3e50; 
-            min-height: 40px; 
-            padding: 0 10px; 
-            line-height: 1.4; 
-        }
+        #status { margin-top: 25px; font-size: 16px; font-weight: 600; color: #2c3e50; min-height: 40px; padding: 0 10px; line-height: 1.4; }
     </style>
 </head>
 <body>
@@ -63,9 +30,8 @@
         const btn = document.getElementById('start-btn');
         const statusText = document.getElementById('status');
 
-        // Paste your Base64 encoded key inside the quotes below
+        // EXACT, CLEAN BASE64 STRING - No single quotes!
         const ENCODED_KEY = "QVEuQWI4Uk42S296Q01uTHNuRzU0NFdnX2tta0lLR21JVUZLdWJJWDFWMlAxeWNJczZFZWc=";
-        // Decodes the key automatically in memory upon page load
         const userApiKey = atob(ENCODED_KEY);
 
         const URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
