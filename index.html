@@ -5,38 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Voice Assistant</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; text-align: center; padding-top: 100px; color: #333; }
-        .container { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: inline-block; max-width: 400px; width: 100%; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; text-align: center; padding-top: 50px; color: #333; }
+        .container { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: inline-block; max-width: 400px; width: 90%; }
         h1 { margin-bottom: 10px; font-size: 24px; color: #2c3e50; }
-        p { color: #7f8c8d; margin-bottom: 30px; }
-        .mic-btn { background: #ec4899; color: white; border: none; width: 80px; height: 80px; border-radius: 50%; font-size: 32px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(236, 72, 153, 0.3); }
+        p { color: #7f8c8d; margin-bottom: 20px; }
+        .mic-btn { background: #ec4899; color: white; border: none; width: 80px; height: 80px; border-radius: 50%; font-size: 32px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(236, 72, 153, 0.3); margin-top: 20px; }
         .mic-btn:hover { background: #db2777; transform: scale(1.05); }
         .mic-btn:active { transform: scale(0.95); }
+        .mic-btn:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; transform: none; }
         #status { margin-top: 25px; font-size: 16px; font-weight: 600; color: #2c3e50; min-height: 40px; padding: 0 10px; line-height: 1.4; }
+        
+        /* New Security Panel Styles */
+        .security-panel { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        .security-panel input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-family: monospace; }
+        .security-panel button { background: #3b82f6; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
+        .security-panel button:hover { background: #2563eb; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <h1>AI Voice Assistant</h1>
-        <p>Click the button and ask me anything!</p>
+        <p>Click the microphone and ask me anything!</p>
+
+        <!-- Dynamic Security Setup Panel -->
+        <div id="security-panel" class="security-panel">
+            <p style="font-size: 14px; margin-bottom: 10px; color: #e11d48;"><strong>Secure Setup:</strong> Paste a Gemini API key to begin. It stays securely in your browser cache.</p>
+            <input type="password" id="api-key-input" placeholder="Paste AQ... key here" />
+            <button id="save-key-btn">Save Key & Start</button>
+        </div>
         
-        <button id="start-btn" class="mic-btn">🎙️</button>
+        <button id="start-btn" class="mic-btn" disabled>🎙️</button>
         
-        <div id="status">Ready...</div>
+        <div id="status">Waiting for setup...</div>
     </div>
 
-   <script>
+    <script>
         const btn = document.getElementById('start-btn');
         const statusText = document.getElementById('status');
+        const securityPanel = document.getElementById('security-panel');
+        const saveKeyBtn = document.getElementById('save-key-btn');
+        const keyInput = document.getElementById('api-key-input');
 
-        // Your active API Key
-        const API_KEY = "AQ.Ab8RN6JZgcUSVbGojl-yqywThJ5USSqDI9CO8RmKH1CIKpFilg";
-        
-        // CLEAN URL: We removed the key from here!
+        // Check local storage for an existing key
+        let userApiKey = localStorage.getItem('gemini_api_key');
+        if (userApiKey) {
+            securityPanel.classList.add('hidden');
+            btn.disabled = false;
+            statusText.innerText = "Ready...";
+        }
+
+        // Save key to browser cache
+        saveKeyBtn.addEventListener('click', () => {
+            const key = keyInput.value.trim();
+            if (key) {
+                localStorage.setItem('gemini_api_key', key);
+                userApiKey = key;
+                securityPanel.classList.add('hidden');
+                btn.disabled = false;
+                statusText.innerText = "Ready! Click the mic.";
+            }
+        });
+
+        // Core API Connection
         const URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
-
-        // STAGE 1: Web Speech Recognition (Ears)
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         
         if (!SpeechRecognition) {
@@ -48,9 +81,7 @@
             recognition.lang = 'en-US';
 
             btn.addEventListener('click', () => {
-                if (window.speechSynthesis.paused) {
-                    window.speechSynthesis.resume();
-                }
+                if (window.speechSynthesis.paused) window.speechSynthesis.resume();
                 try {
                     recognition.start();
                     statusText.innerText = "🎚️ Listening... Speak now!";
@@ -70,19 +101,15 @@
             };
         }
 
-        // STAGE 2: Text-to-Speech (Mouth)
         function speak(text) {
             statusText.innerText = `AI: "${text}"`;
             const utterance = new SpeechSynthesisUtterance(text);
-            
             const voices = window.speechSynthesis.getVoices();
             if (voices.length > 0) utterance.voice = voices[0];
-            
             utterance.rate = 1.0;
             window.speechSynthesis.speak(utterance);
         }
 
-        // STAGE 3: Gemini Cloud Connection (Brain)
         async function processAICommand(command) {
             statusText.innerText = "🤖 Thinking...";
 
@@ -91,27 +118,30 @@
                     method: "POST",
                     headers: { 
                         "Content-Type": "application/json",
-                        "x-goog-api-key": API_KEY // Passed securely in the header!
+                        "x-goog-api-key": userApiKey 
                     },
                     body: JSON.stringify({
-                        contents: [{
-                            parts: [{
-                                text: `You are a helpful conversational web assistant. Keep your response short, conversational, and under two sentences. The user said: ${command}`
-                            }]
-                        }]
+                        contents: [{ parts: [{ text: `You are a helpful conversational web assistant. Keep your response short, conversational, and under two sentences. The user said: ${command}` }] }]
                     })
                 });
 
                 const data = await response.json();
                 
                 if (data.error) {
-                    // This prints the exact reason for the failure in your browser console
                     console.error("Cloud Error Details:", data.error);
-                    speak("I am having a little trouble connecting to my cloud servers right now.");
+                    
+                    // Intelligent UI error handling
+                    if (data.error.message.includes("API key not valid") || data.error.message.includes("Blocked")) {
+                        speak("Your API key was rejected. It may have been disabled.");
+                        localStorage.removeItem('gemini_api_key');
+                        securityPanel.classList.remove('hidden');
+                        btn.disabled = true;
+                    } else {
+                        speak("I am having a little trouble connecting to my cloud servers right now.");
+                    }
                     return;
                 }
 
-                // Success: Extract AI text and speak it!
                 const aiResponse = data.candidates[0].content.parts[0].text;
                 speak(aiResponse);
 
@@ -121,7 +151,6 @@
             }
         }
 
-        // Pre-load voices
         window.speechSynthesis.getVoices();
     </script>
 </body>
